@@ -597,23 +597,21 @@ func (s *Session) onClusterInfo(ctx context.Context, mgrInfo *manager.ClusterInf
 	}
 
 	subnets := make([]*net.IPNet, 0, 1+len(mgrInfo.PodSubnets))
-	if s.proxyCluster {
-		if mgrInfo.ServiceSubnet != nil {
-			cidr := iputil.IPNetFromRPC(mgrInfo.ServiceSubnet)
-			dlog.Infof(ctx, "Adding Service subnet %s", cidr)
-			subnets = append(subnets, cidr)
-		}
+	if mgrInfo.ServiceSubnet != nil {
+		cidr := iputil.IPNetFromRPC(mgrInfo.ServiceSubnet)
+		dlog.Infof(ctx, "Adding Service subnet %s", cidr)
+		subnets = append(subnets, cidr)
+	}
 
-		for _, sn := range mgrInfo.PodSubnets {
-			cidr := iputil.IPNetFromRPC(sn)
-			dlog.Infof(ctx, "Adding pod subnet %s", cidr)
-			subnets = append(subnets, cidr)
-		}
+	for _, sn := range mgrInfo.PodSubnets {
+		cidr := iputil.IPNetFromRPC(sn)
+		dlog.Infof(ctx, "Adding pod subnet %s", cidr)
+		subnets = append(subnets, cidr)
+	}
 
-		s.clusterSubnets = subnet.Unique(subnets)
-		if err := s.refreshSubnets(ctx); err != nil {
-			dlog.Error(ctx, err)
-		}
+	s.clusterSubnets = subnet.Unique(subnets)
+	if err := s.refreshSubnets(ctx); err != nil {
+		dlog.Error(ctx, err)
 	}
 
 	span.SetAttributes(
